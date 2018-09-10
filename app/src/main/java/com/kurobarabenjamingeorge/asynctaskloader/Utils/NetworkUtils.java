@@ -49,7 +49,7 @@ public class NetworkUtils {
             reader = new BufferedReader(new InputStreamReader(inputStream));
             String line;
             while((line = reader.readLine()) != null){
-                buffer.append(line + "/n");
+                buffer.append(line + "\n");
 
             }
 

@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">AsyncTaskLoader</string>
+    <string name="instructions">Enter a book name or a phrase to fid the author</string>
+    <string name="edit_text_hint">Enter book title</string>
 </resources>

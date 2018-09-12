@@ -2,7 +2,6 @@ package com.kurobarabenjamingeorge.asynctaskloader.Utils;
 
 import android.net.Uri;
 import android.util.Log;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,7 +15,6 @@ import java.net.URL;
 
 public class NetworkUtils {
 
-    private static final String LOG_TAG = NetworkUtils.class.getSimpleName();
     private static final String BASE_URI = "https://www.googleapis.com/books/v1/volumes?";
     private static final String QUERY_PARAM = "q";
     private static final String MAX_RESULTS = "maxResults";
@@ -25,9 +23,10 @@ public class NetworkUtils {
     public static String getBookInfo(String queryString){
         HttpURLConnection connection = null;
         BufferedReader reader = null;
-        String bookJSONString = null;
+        String searchResults = null;
 
         try{
+            //Build a URI for the query
             Uri builtUri = Uri.parse(BASE_URI).buildUpon()
                     .appendQueryParameter(QUERY_PARAM, queryString)
                     .appendQueryParameter(MAX_RESULTS, "5")
@@ -42,6 +41,7 @@ public class NetworkUtils {
 
             InputStream inputStream = connection.getInputStream();
             StringBuffer buffer = new StringBuffer();
+
             if(inputStream == null){
                 return null;
             }
@@ -57,9 +57,8 @@ public class NetworkUtils {
                 return  null;
             }
 
-            bookJSONString = buffer.toString();
+            searchResults = buffer.toString();
 
-            Log.i("Books result", bookJSONString);
 
         }catch (IOException e){
             e.printStackTrace();
@@ -77,9 +76,6 @@ public class NetworkUtils {
                 }
             }
         }
-
-
-
-        return bookJSONString;
+        return searchResults;
     }
 }

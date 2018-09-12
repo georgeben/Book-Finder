@@ -19,6 +19,7 @@ public class BookLoader extends AsyncTaskLoader<String> {
     @Override
     protected void onStartLoading() {
         super.onStartLoading();
+        //Starts loadInBackground();
         forceLoad();
     }
 

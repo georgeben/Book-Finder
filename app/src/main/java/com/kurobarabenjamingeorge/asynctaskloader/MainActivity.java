@@ -2,6 +2,8 @@ package com.kurobarabenjamingeorge.asynctaskloader;
 
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,9 +14,13 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.io.InputStream;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements
+        LoaderManager.LoaderCallbacks<String>{
 
     private EditText bookSearchQuery;
     private TextView bookTitle, bookAuthor;
@@ -24,6 +30,10 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        if(getSupportLoaderManager().getLoader(0) != null){
+            getSupportLoaderManager().initLoader(0, null, this);
+        }
 
         bookSearchQuery = (EditText) findViewById(R.id.bookSearchQuery);
         bookTitle = (TextView) findViewById(R.id.bookTitle);
@@ -43,7 +53,11 @@ public class MainActivity extends AppCompatActivity {
         NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
 
         if(networkInfo != null && networkInfo.isConnected() && searchQuery.length() != 0){
-            new FetchBook(bookTitle, bookAuthor, pb).execute(searchQuery);
+            Bundle queryBundle = new Bundle();
+            queryBundle.putString("queryString", searchQuery);
+            getSupportLoaderManager().restartLoader(0, queryBundle, this);
+            pb.setVisibility(View.VISIBLE);
+            //new FetchBook(bookTitle, bookAuthor, pb).execute(searchQuery);
         }else if(searchQuery.length() <= 0){
             Toast.makeText(this, "Please enter a term to search", Toast.LENGTH_SHORT).show();
         }else{
@@ -51,5 +65,54 @@ public class MainActivity extends AppCompatActivity {
         }
 
         
+    }
+
+    @Override
+    public Loader<String> onCreateLoader(int id, Bundle args) {
+        return new BookLoader(this, args.getString("queryString"));
+    }
+
+    @Override
+    public void onLoadFinished(Loader<String> loader, String data) {
+        pb.setVisibility(View.INVISIBLE);
+
+        try{
+            JSONObject jsonObject = new JSONObject(data);
+            JSONArray jsonArray = jsonObject.getJSONArray("items");
+
+            for(int i=0; i < jsonArray.length(); i++){
+                JSONObject currentBook = jsonArray.getJSONObject(i);
+                String title = null;
+                String author = null;
+
+                JSONObject volumesInfo = currentBook.getJSONObject("volumeInfo");
+                try{
+                    title = volumesInfo.getString("title");
+                    author = volumesInfo.getString("authors");
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+
+                if(title != null && author != null){
+                    bookTitle.setText(title);
+                    bookAuthor.setText(author);
+
+                    return;
+                }
+            }
+
+            bookTitle.setText("No results found");
+            bookAuthor.setText("");
+
+        } catch (Exception e) {
+            bookTitle.setText("No results found");
+            bookAuthor.setText("");
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onLoaderReset(Loader<String> loader) {
+
     }
 }
